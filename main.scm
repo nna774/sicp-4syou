@@ -156,17 +156,17 @@
 (define (and? exp) (tagged-list? exp 'and))
 (define (eval-and exps env)
   (if (null? exps)
-      'true
+      true
       (let ((first (car exps)))
         (if (eval first env)
             (eval-and (cdr exps) env)
-            'false))))
+            false))))
 
 (define (or? exp) (tagged-list? exp 'or))
 (define (eval-or exps env)
   (if (null? exps)
-      'false
+      false
       (let ((first (car exps)))
         (if (eval first env)
-            'true
+            true
             (eval-or (cdr exps) env)))))
