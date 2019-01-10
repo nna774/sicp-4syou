@@ -15,6 +15,7 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
         ((and? exp) (eval-and (operands exp) env))
+        ((or? exp) (eval-or (operands exp) env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -160,3 +161,12 @@
         (if (eval first env)
             (eval-and (cdr exps) env)
             'false))))
+
+(define (or? exp) (tagged-list? exp 'or))
+(define (eval-or exps env)
+  (if (null? exps)
+      'false
+      (let ((first (car exps)))
+        (if (eval first env)
+            'true
+            (eval-or (cdr exps) env)))))
