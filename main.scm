@@ -4,6 +4,7 @@
 
 ; debug utils
 (define (id x) x)
+(define eval-orig eval)
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
