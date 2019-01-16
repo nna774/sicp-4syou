@@ -1,3 +1,4 @@
+; for Gauche
 (define true #t)
 (define false #f)
 
