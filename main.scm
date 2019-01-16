@@ -2,6 +2,9 @@
 (define true #t)
 (define false #f)
 
+; debug utils
+(define (id x) x)
+
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
