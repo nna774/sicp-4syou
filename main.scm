@@ -28,7 +28,7 @@
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
         (else
-          (error "Unknown expression type: EVAL" exp))))
+         (error "Unknown expression type: EVAL" exp))))
 
 (define (test-equal exp actual expected)
     (if (eq? expected actual)
