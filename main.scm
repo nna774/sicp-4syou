@@ -234,3 +234,9 @@
 (test '(or true false) '() true)
 (test '(or false true) '() true)
 (test '(or false false) '() false)
+
+; let
+(test '(let ((a 1)) a) '() 1)
+
+; cond
+(test '(cond ((assoc 'b '((a 1) (b 2))) => cadr) (else false)) '() 2)
