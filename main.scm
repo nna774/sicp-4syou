@@ -211,7 +211,7 @@
 (define (let-bindings exp) (cadr exp))
 (define (let-body exp) (caddr exp))
 (define (make-let bindings body)
-  (append `( ( lambda ,(let-list-names bindings) ,body))
+  (cons (make-lambda (let-list-names bindings) (list body))
           (let-list-vals bindings)))
 (define (let? exp) (tagged-list? exp 'let))
 (define (let->combination exp)
