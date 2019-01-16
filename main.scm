@@ -22,8 +22,8 @@
         ((begin? exp)
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
-        ((and? exp) (eval-and (operands exp) env))
-        ((or? exp) (eval-or (operands exp) env))
+        ((and? exp) (eval (and->if (operands exp)) env))
+        ((or? exp) (eval (or->if (operands exp)) env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -193,22 +193,18 @@
                         (expand-clauses rest)))))))
 
 (define (and? exp) (tagged-list? exp 'and))
-(define (eval-and exps env)
+(define (and->if exps)
   (if (null? exps)
-      true
+      'true
       (let ((first (car exps)))
-        (if (eval first env)
-            (eval-and (cdr exps) env)
-            false))))
+        (make-if first (and->if (cdr exps)) 'false))))
 
 (define (or? exp) (tagged-list? exp 'or))
-(define (eval-or exps env)
+(define (or->if exps)
   (if (null? exps)
-      false
+      'false
       (let ((first (car exps)))
-        (if (eval first env)
-            true
-            (eval-or (cdr exps) env)))))
+        (make-if first 'true (or->if (cdr exps))))))
 
 (define (let-list-names bindings) (map car bindings))
 (define (let-list-vals bindings) (map cadr bindings))
