@@ -141,21 +141,44 @@
 (define (cond-clauses exp) (cdr exp))
 (define (cond-else-clause? clause)
   (eq? (cond-predicate clause) 'else))
+(define (cond-arrow-clause? clause)
+  (eq? (cadr clause) '=>))
+(define (cond-arrow-operand clause) (car clause))
+(define (cond-arrow-operator clause) (caddr clause))
 (define (cond-predicate clause) (car clause))
 (define (cond-actions clause) (cdr clause))
+(define (make-cond-arrow first rest)
+  ; (cond ((begin (print 42) #t) => id)
+  ; は42を出力するので、
+  ; (if (begin (print 42) #t) (id (begin (print 42) #t)) #f)
+  ; のように変換するのではなく、
+  ; (let ((t (begin (print 42) #t))) (if t (id t) #f))
+  ; のように変換する必要がある。
+  ;; https://kmc.hatenablog.jp/entry/2019/01/11/011314 の最初の写真
+  (make-let `((t ; restの内側で使われている名前と衝突するとマズい気がする。
+               ,(cond-arrow-operand first)))
+            (make-if
+              't
+              (list (cond-arrow-operator first) 't)
+              rest)))
 (define (cond->if exp) (expand-clauses (cond-clauses exp)))
 (define (expand-clauses clauses)
   (if (null? clauses)
       'false ; else節はない
       (let ((first (car clauses))
             (rest (cdr clauses)))
-        (if (cond-else-clause? first)
-            (if (null? rest)
-                (sequence->exp (cond-actions first))
-                (error "ELSE clause isn't last: COND->IF" clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+        (cond ((cond-else-clause? first)
+               (if (null? rest)
+                   (sequence->exp (cond-actions first))
+                   (error "ELSE clause isn't last: COND->IF" clauses)))
+              ((cond-arrow-clause? first)
+               (make-cond-arrow
+                first
+                (expand-clauses rest)))
+              (else
+               (make-if (cond-predicate first)
+                        (sequence->exp (cond-actions first))
+                        (expand-clauses rest)))))))
 
 (define (and? exp) (tagged-list? exp 'and))
 (define (eval-and exps env)
@@ -174,3 +197,10 @@
         (if (eval first env)
             true
             (eval-or (cdr exps) env)))))
+
+(define (list-names bindings) (map car bindings))
+(define (list-vals bindings) (map cadr bindings))
+(define (let->combination bindings body)
+  (append `( ( lambda ,(list-names bindings) ,body))
+          (list-vals bindings)))
+(define (make-let bindings body) (let->combination bindings body))
