@@ -30,6 +30,14 @@
         (else
           (error "Unknown expression type: EVAL" exp))))
 
+(define (test-equal exp actual expected)
+    (if (eq? expected actual)
+        'ok
+        (error exp "expect" expected ", but got" actual)))
+(define (test exp env expected)
+  (let ((actual (eval exp env)))
+    (test-equal exp actual expected)))
+
 (define (apply procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
@@ -212,3 +220,21 @@
 (define (let? exp) (tagged-list? exp 'let))
 (define (let->combination exp)
   (make-let (let-bindings exp) (let-body exp)))
+
+;; test cases
+; and
+(test '(and) '() true)
+(test '(and true) '() true)
+(test '(and false) '() false)
+(test '(and true true) '() true)
+(test '(and true false) '() false)
+(test '(and false true) '() false)
+(test '(and false false) '() false)
+; or
+(test '(or) '() false)
+(test '(or true) '() true)
+(test '(or false) '() false)
+(test '(or true true) '() true)
+(test '(or true false) '() true)
+(test '(or false true) '() true)
+(test '(or false false) '() false)
